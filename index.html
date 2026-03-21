@@ -240,6 +240,7 @@
       <div class="section">
         <h2>3. 合計金額（税込）</h2>
         <div class="total-box">合計金額：<span id="total">0</span>円（税込）</div>
+        <div class="note">※県別にて配送料が加算されています。</div>
       </div>
 
       <div class="section">
@@ -249,9 +250,9 @@
           品川支店<br>
           普通<br>
           0165341<br>
-          ※振込時、<strong>依頼人情報に氏名（カタカナ）と電話番号</strong>を記載ください。<br>
+          ※振込時、<strong>依頼人情報に氏名（カタカナ）と電話番号</strong>を記載ください。<br> 
           ※振込手数料はお客様負担となります。<br>
-          ※振込が確認取れ次第の発送となり、配送料は別途頂戴します。（基本一律1,600円）
+          ※振り込み確認取れ次第の発送となります。
         </div>
       </div>
 
@@ -276,10 +277,66 @@
       const totalEl = document.getElementById('total');
       const resultEl = document.getElementById('result');
       const form = document.getElementById('orderForm');
+      const prefectureEl = document.getElementById('prefecture');
       const TAX_RATE = 1.1;
+
+      const shippingFees = {
+        '北海道': 2400,
+        '青森県': 1750,
+        '秋田県': 1750,
+        '岩手県': 1750,
+        '宮城県': 1750,
+        '山形県': 1750,
+        '福島県': 1750,
+        '群馬県': 1200,
+        '栃木県': 1200,
+        '山梨県': 1200,
+        '茨城県': 1200,
+        '千葉県': 1200,
+        '埼玉県': 1200,
+        '神奈川県': 1200,
+        '東京都': 1200,
+        '新潟県': 1200,
+        '長野県': 1200,
+        '富山県': 1200,
+        '石川県': 1200,
+        '福井県': 1200,
+        '静岡県': 1200,
+        '愛知県': 1200,
+        '三重県': 1200,
+        '岐阜県': 1200,
+        '愛媛県': 1200,
+        '香川県': 1200,
+        '高知県': 1200,
+        '徳島県': 1200,
+        '大阪府': 1000,
+        '京都府': 1000,
+        '奈良県': 1000,
+        '滋賀県': 1000,
+        '兵庫県': 1000,
+        '和歌山県': 1000,
+        '島根県': 900,
+        '鳥取県': 900,
+        '山口県': 900,
+        '広島県': 900,
+        '岡山県': 900,
+        '福岡県': 900,
+        '佐賀県': 900,
+        '長崎県': 900,
+        '熊本県': 900,
+        '大分県': 900,
+        '宮崎県': 900,
+        '鹿児島県': 900,
+        '沖縄県': 1500
+      };
 
       function formatYen(num) {
         return Number(num).toLocaleString('ja-JP');
+      }
+
+      function getShippingFee() {
+        const prefecture = prefectureEl.value;
+        return shippingFees[prefecture] || 0;
       }
 
       function calculateTotal() {
@@ -295,7 +352,10 @@
           }
         });
 
-        const total = Math.round(subtotal * TAX_RATE);
+        const taxIncluded = Math.round(subtotal * TAX_RATE);
+        const shippingFee = getShippingFee();
+        const total = taxIncluded + shippingFee;
+
         totalEl.textContent = formatYen(total);
         return total;
       }
@@ -341,6 +401,10 @@
         });
       });
 
+      prefectureEl.addEventListener('change', function () {
+        calculateTotal();
+      });
+
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         const total = calculateTotal();
@@ -355,14 +419,15 @@
           return;
         }
 
-        const products = getSelectedProducts().join('\n');
+        const products = getSelectedProducts().join('\\n');
         const lastName = document.getElementById('lastName').value.trim();
         const firstName = document.getElementById('firstName').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const zipcode = document.getElementById('zipcode').value.trim();
-        const prefecture = document.getElementById('prefecture').value;
+        const prefecture = prefectureEl.value;
         const cityAddress = document.getElementById('cityAddress').value.trim();
         const building = document.getElementById('building').value.trim();
+        const shippingFee = getShippingFee();
 
         const subject = `【注文】みやざき地頭鶏 / ${lastName} ${firstName} 様`;
         const body = [
@@ -370,6 +435,9 @@
           '',
           '【ご注文商品】',
           products,
+          '',
+          '【配送料】',
+          `${formatYen(shippingFee)}円`,
           '',
           '【合計金額（税込）】',
           `${formatYen(total)}円`,
@@ -390,8 +458,8 @@
           '0165341',
           '※振込時、依頼人情報に氏名（カタカナ）と電話番号を記載ください。',
           '※振込手数料はお客様負担となります。',
-          '※振込が確認取れ次第の発送となります。'
-        ].join('\n');
+          '※振り込み確認取れ次第の発送となります。'
+        ].join('\\n');
 
         const mailtoUrl = `mailto:yusuke_yamamoto@colab.jp?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         window.location.href = mailtoUrl;
