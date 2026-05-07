@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>みやざき地頭鶏 ご注文フォーム</title>
+
+  <!-- 確認画面を画像化するためのライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -21,9 +25,7 @@
       padding: 32px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
-    h1, h2 {
-      margin-top: 0;
-    }
+    h1, h2 { margin-top: 0; }
     .thanks {
       background: #fff7e6;
       border-left: 6px solid #d97706;
@@ -31,9 +33,7 @@
       border-radius: 8px;
       margin-bottom: 24px;
     }
-    .section {
-      margin-bottom: 28px;
-    }
+    .section { margin-bottom: 28px; }
     .product {
       border: 1px solid #e5e7eb;
       border-radius: 12px;
@@ -74,9 +74,7 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 16px;
     }
-    .full {
-      grid-column: 1 / -1;
-    }
+    .full { grid-column: 1 / -1; }
     .note {
       font-size: 13px;
       color: #555;
@@ -90,7 +88,7 @@
       font-size: 22px;
       font-weight: 700;
     }
-    .bank, .contact {
+    .bank, .contact, .confirm-box {
       background: #f8fafc;
       border-radius: 12px;
       padding: 18px;
@@ -99,8 +97,12 @@
     .submit-area {
       margin-top: 32px;
       text-align: center;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
-    button {
+    button, .button-like {
       background: #111827;
       color: #fff;
       border: none;
@@ -108,9 +110,18 @@
       padding: 14px 24px;
       font-size: 16px;
       cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
     }
-    button:hover {
-      opacity: 0.9;
+    button:hover, .button-like:hover { opacity: 0.9; }
+    .secondary {
+      background: #6b7280;
+    }
+    .mail-button.gmail {
+      background: #dc2626;
+    }
+    .mail-button.outlook {
+      background: #2563eb;
     }
     .result {
       margin-top: 16px;
@@ -118,156 +129,231 @@
       color: #065f46;
       font-weight: 600;
       white-space: pre-line;
+      text-align: center;
+    }
+    .hidden { display: none; }
+    .confirm-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .confirm-label {
+      font-weight: 700;
+      color: #374151;
+    }
+    .confirm-value {
+      white-space: pre-line;
+    }
+    #pdfContent {
+      background: #fff;
+      padding: 24px;
+    }
+    .pdf-title {
+      border-bottom: 2px solid #111827;
+      padding-bottom: 8px;
+      margin-bottom: 18px;
     }
     @media (max-width: 720px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-      .container {
-        padding: 20px;
-      }
+      .grid { grid-template-columns: 1fr; }
+      .container { padding: 20px; }
+      .confirm-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>みやざき地頭鶏 ご注文フォーム</h1>
+    <div id="inputPage">
+      <h1>みやざき地頭鶏 ご注文フォーム</h1>
 
-    <div class="thanks">
-      このたびは、みやざき地頭鶏をご購入いただき誠にありがとうございます。以下のフォームに必要事項をご記入のうえ、ご注文内容をご確認ください。
+      <div class="thanks">
+        このたびは、みやざき地頭鶏をご購入いただき誠にありがとうございます。以下のフォームに必要事項をご記入のうえ、ご注文内容をご確認ください。
+      </div>
+
+      <form id="orderForm">
+        <div class="section">
+          <h2>1. ご注文商品</h2>
+
+          <div class="product">
+            <div class="product-header">
+              <label><input type="checkbox" class="product-check" data-price="4980" data-qty-id="qty1">① みやざき地頭鶏（中抜き）一羽</label>
+              <div>4,980円（税抜）</div>
+            </div>
+            <div class="qty">
+              <span>数量</span>
+              <input id="qty1" class="qty-input" type="number" min="0" value="0" style="max-width: 120px;">
+            </div>
+            <div class="note">※中抜きとは、内臓部分だけ捌き、他は1羽丸々届き、お客様側で捌く形となります。</div>
+          </div>
+
+          <div class="product">
+            <div class="product-header">
+              <label><input type="checkbox" class="product-check" data-price="4980" data-qty-id="qty2">② みやざき地頭鶏（解体）一羽</label>
+              <div>4,980円（税抜）</div>
+            </div>
+            <div class="qty">
+              <span>数量</span>
+              <input id="qty2" class="qty-input" type="number" min="0" value="0" style="max-width: 120px;">
+            </div>
+            <div class="note">※部位ごとに捌いて送付する形です。</div>
+          </div>
+
+          <div class="product">
+            <div class="product-header">
+              <label><input type="checkbox" class="product-check" data-price="3980" data-qty-id="qty3">③ もも単品 約1kg</label>
+              <div>3,980円（税抜）</div>
+            </div>
+            <div class="qty">
+              <span>数量</span>
+              <input id="qty3" class="qty-input" type="number" min="0" value="0" style="max-width: 120px;">
+            </div>
+          </div>
+
+          <div class="product">
+            <div class="product-header">
+              <label><input type="checkbox" class="product-check" data-price="2980" data-qty-id="qty4">④ むね単品 約1kg</label>
+              <div>2,980円（税抜）</div>
+            </div>
+            <div class="qty">
+              <span>数量</span>
+              <input id="qty4" class="qty-input" type="number" min="0" value="0" style="max-width: 120px;">
+            </div>
+          </div>
+
+          <div class="note">※1羽購入の際には個体差がありますので、ご了承ください。</div>
+        </div>
+
+        <div class="section">
+          <h2>2. お届け先情報</h2>
+          <div class="grid">
+            <div>
+              <label for="lastName">姓</label>
+              <input id="lastName" name="lastName" type="text" placeholder="例：山田" required />
+            </div>
+            <div>
+              <label for="firstName">名</label>
+              <input id="firstName" name="firstName" type="text" placeholder="例：太郎" required />
+            </div>
+
+            <div class="full">
+              <label for="phone">電話番号</label>
+              <input id="phone" name="phone" type="text" placeholder="例：090-1234-5678" required />
+            </div>
+
+            <div>
+              <label for="zipcode">郵便番号</label>
+              <input id="zipcode" name="zipcode" type="text" placeholder="例：123-4567" required />
+            </div>
+            <div>
+              <label for="prefecture">都道府県</label>
+              <select id="prefecture" name="prefecture" required>
+                <option value="">選択してください</option>
+                <option>北海道</option><option>青森県</option><option>岩手県</option><option>宮城県</option><option>秋田県</option><option>山形県</option><option>福島県</option>
+                <option>茨城県</option><option>栃木県</option><option>群馬県</option><option>埼玉県</option><option>千葉県</option><option>東京都</option><option>神奈川県</option>
+                <option>新潟県</option><option>富山県</option><option>石川県</option><option>福井県</option><option>山梨県</option><option>長野県</option><option>岐阜県</option><option>静岡県</option><option>愛知県</option>
+                <option>三重県</option><option>滋賀県</option><option>京都府</option><option>大阪府</option><option>兵庫県</option><option>奈良県</option><option>和歌山県</option>
+                <option>鳥取県</option><option>島根県</option><option>岡山県</option><option>広島県</option><option>山口県</option>
+                <option>徳島県</option><option>香川県</option><option>愛媛県</option><option>高知県</option>
+                <option>福岡県</option><option>佐賀県</option><option>長崎県</option><option>熊本県</option><option>大分県</option><option>宮崎県</option><option>鹿児島県</option><option>沖縄県</option>
+              </select>
+            </div>
+
+            <div class="full">
+              <label for="cityAddress">市区町村以下</label>
+              <input id="cityAddress" name="cityAddress" type="text" placeholder="例：港区南青山1-2-3" required />
+            </div>
+
+            <div class="full">
+              <label for="building">マンション名・室番号</label>
+              <input id="building" name="building" type="text" placeholder="例：○○マンション 101号室" />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>3. 合計金額（税込）</h2>
+          <div class="total-box">合計金額：<span id="total">0</span>円（税込）</div>
+          <div class="note">※県別にて配送料が加算されています。</div>
+        </div>
+
+        <div class="section">
+          <h2>4. お振込先</h2>
+          <div class="bank">
+            りそな銀行<br>
+            品川支店<br>
+            普通<br>
+            0165341<br>
+            ※振込時、<strong>依頼人情報に氏名（カタカナ）と電話番号</strong>を記載ください。<br>
+            ※振込手数料はお客様負担となります。<br>
+            ※振り込み確認取れ次第の発送となります。
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>5. お問い合わせ先</h2>
+          <div class="contact">yusuke_yamamoto@colab.jp</div>
+        </div>
+
+        <div class="submit-area">
+          <button type="submit">確認画面へ進む</button>
+        </div>
+        <div id="inputResult" class="result"></div>
+      </form>
     </div>
 
-    <form id="orderForm">
-      <div class="section">
-        <h2>1. ご注文商品</h2>
-
-        <div class="product">
-          <div class="product-header">
-            <label><input type="checkbox" class="product-check" data-price="4980" data-qty-id="qty1">① みやざき地頭鶏（中抜き）一羽</label>
-            <div>4,980円（税抜）</div>
-          </div>
-          <div class="qty">
-            <span>数量</span>
-            <input id="qty1" class="qty-input" type="number" min="0" value="0" style="max-width: 120px;">
-          </div>
-          <div class="note">※中抜きとは、内臓部分だけ捌き、他は1羽丸々届き、お客様側で捌く形となります。</div>
-        </div>
-
-        <div class="product">
-          <div class="product-header">
-            <label><input type="checkbox" class="product-check" data-price="4980" data-qty-id="qty2">② みやざき地頭鶏（解体）一羽</label>
-            <div>4,980円（税抜）</div>
-          </div>
-          <div class="qty">
-            <span>数量</span>
-            <input id="qty2" class="qty-input" type="number" min="0" value="0" style="max-width: 120px;">
-          </div>
-          <div class="note">※部位ごとに捌いて送付する形です。</div>
-        </div>
-
-        <div class="product">
-          <div class="product-header">
-            <label><input type="checkbox" class="product-check" data-price="3980" data-qty-id="qty3">③ もも単品 約1kg</label>
-            <div>3,980円（税抜）</div>
-          </div>
-          <div class="qty">
-            <span>数量</span>
-            <input id="qty3" class="qty-input" type="number" min="0" value="0" style="max-width: 120px;">
-          </div>
-        </div>
-
-        <div class="product">
-          <div class="product-header">
-            <label><input type="checkbox" class="product-check" data-price="2980" data-qty-id="qty4">④ むね単品 約1kg</label>
-            <div>2,980円（税抜）</div>
-          </div>
-          <div class="qty">
-            <span>数量</span>
-            <input id="qty4" class="qty-input" type="number" min="0" value="0" style="max-width: 120px;">
-          </div>
-        </div>
-
-        <div class="note">※1羽購入の際には個体差がありますので、ご了承ください。</div>
+    <div id="confirmPage" class="hidden">
+      <h1>ご注文内容の確認</h1>
+      <div class="thanks">
+        以下の内容でお間違いがないかご確認ください。修正する場合は「入力画面に戻る」を押してください。
       </div>
 
-      <div class="section">
-        <h2>2. お届け先情報</h2>
-        <div class="grid">
-          <div>
-            <label for="lastName">姓</label>
-            <input id="lastName" name="lastName" type="text" placeholder="例：山田" required />
-          </div>
-          <div>
-            <label for="firstName">名</label>
-            <input id="firstName" name="firstName" type="text" placeholder="例：太郎" required />
-          </div>
+      <div id="pdfContent">
+        <h1 class="pdf-title">みやざき地頭鶏 ご注文内容確認</h1>
+        <div class="section">
+          <h2>ご注文商品</h2>
+          <div id="confirmProducts" class="confirm-box"></div>
+        </div>
 
-          <div class="full">
-            <label for="phone">電話番号</label>
-            <input id="phone" name="phone" type="text" placeholder="例：090-1234-5678" required />
-          </div>
-
-          <div>
-            <label for="zipcode">郵便番号</label>
-            <input id="zipcode" name="zipcode" type="text" placeholder="例：123-4567" required />
-          </div>
-          <div>
-            <label for="prefecture">都道府県</label>
-            <select id="prefecture" name="prefecture" required>
-              <option value="">選択してください</option>
-              <option>北海道</option><option>青森県</option><option>岩手県</option><option>宮城県</option><option>秋田県</option><option>山形県</option><option>福島県</option>
-              <option>茨城県</option><option>栃木県</option><option>群馬県</option><option>埼玉県</option><option>千葉県</option><option>東京都</option><option>神奈川県</option>
-              <option>新潟県</option><option>富山県</option><option>石川県</option><option>福井県</option><option>山梨県</option><option>長野県</option><option>岐阜県</option><option>静岡県</option><option>愛知県</option>
-              <option>三重県</option><option>滋賀県</option><option>京都府</option><option>大阪府</option><option>兵庫県</option><option>奈良県</option><option>和歌山県</option>
-              <option>鳥取県</option><option>島根県</option><option>岡山県</option><option>広島県</option><option>山口県</option>
-              <option>徳島県</option><option>香川県</option><option>愛媛県</option><option>高知県</option>
-              <option>福岡県</option><option>佐賀県</option><option>長崎県</option><option>熊本県</option><option>大分県</option><option>宮崎県</option><option>鹿児島県</option><option>沖縄県</option>
-            </select>
-          </div>
-
-          <div class="full">
-            <label for="cityAddress">市区町村以下</label>
-            <input id="cityAddress" name="cityAddress" type="text" placeholder="例：港区南青山1-2-3" required />
-          </div>
-
-          <div class="full">
-            <label for="building">マンション名・室番号</label>
-            <input id="building" name="building" type="text" placeholder="例：○○マンション 101号室" />
+        <div class="section">
+          <h2>金額</h2>
+          <div class="confirm-box">
+            <div class="confirm-row"><div class="confirm-label">配送料</div><div id="confirmShipping" class="confirm-value"></div></div>
+            <div class="confirm-row"><div class="confirm-label">合計金額（税込）</div><div id="confirmTotal" class="confirm-value"></div></div>
           </div>
         </div>
-      </div>
 
-      <div class="section">
-        <h2>3. 合計金額（税込）</h2>
-        <div class="total-box">合計金額：<span id="total">0</span>円（税込）</div>
-        <div class="note">※県別にて配送料が加算されています。</div>
-      </div>
-
-      <div class="section">
-        <h2>4. お振込先</h2>
-        <div class="bank">
-          りそな銀行<br>
-          品川支店<br>
-          普通<br>
-          0165341<br>
-          ※振込時、<strong>依頼人情報に氏名（カタカナ）と電話番号</strong>を記載ください。<br> 
-          ※振込手数料はお客様負担となります。<br>
-          ※振り込み確認取れ次第の発送となります。
+        <div class="section">
+          <h2>お届け先情報</h2>
+          <div class="confirm-box">
+            <div class="confirm-row"><div class="confirm-label">お名前</div><div id="confirmName" class="confirm-value"></div></div>
+            <div class="confirm-row"><div class="confirm-label">電話番号</div><div id="confirmPhone" class="confirm-value"></div></div>
+            <div class="confirm-row"><div class="confirm-label">郵便番号</div><div id="confirmZipcode" class="confirm-value"></div></div>
+            <div class="confirm-row"><div class="confirm-label">住所</div><div id="confirmAddress" class="confirm-value"></div></div>
+          </div>
         </div>
-      </div>
 
-      <div class="section">
-        <h2>5. お問い合わせ先</h2>
-        <div class="contact">
-          yusuke_yamamoto@colab.jp
+        <div class="section">
+          <h2>お振込先</h2>
+          <div class="bank">
+            りそな銀行<br>
+            品川支店<br>
+            普通<br>
+            0165341<br>
+            ※振込時、依頼人情報に氏名（カタカナ）と電話番号を記載ください。<br>
+            ※振込手数料はお客様負担となります。<br>
+            ※振り込み確認取れ次第の発送となります。
+          </div>
         </div>
       </div>
 
       <div class="submit-area">
-        <button type="submit">メールを作成する</button>
-        <div id="result" class="result"></div>
+        <button type="button" class="secondary" id="backButton">入力画面に戻る</button>
+        <button type="button" class="mail-button gmail" id="gmailButton">画像を作成してGmailを開く</button>
+        <button type="button" class="mail-button outlook" id="outlookButton">画像を作成してOutlookを開く</button>
       </div>
-    </form>
+      <div id="confirmResult" class="result"></div>
+    </div>
   </div>
 
   <script>
@@ -275,58 +361,26 @@
       const checks = document.querySelectorAll('.product-check');
       const qtyInputs = document.querySelectorAll('.qty-input');
       const totalEl = document.getElementById('total');
-      const resultEl = document.getElementById('result');
-      const form = document.getElementById('orderForm');
+      const orderForm = document.getElementById('orderForm');
       const prefectureEl = document.getElementById('prefecture');
+      const inputPage = document.getElementById('inputPage');
+      const confirmPage = document.getElementById('confirmPage');
+      const inputResult = document.getElementById('inputResult');
+      const confirmResult = document.getElementById('confirmResult');
+      const backButton = document.getElementById('backButton');
+      const gmailButton = document.getElementById('gmailButton');
+      const outlookButton = document.getElementById('outlookButton');
       const TAX_RATE = 1.1;
+      const MAIL_TO = 'yusuke_yamamoto@colab.jp';
 
       const shippingFees = {
-        '北海道': 2400,
-        '青森県': 1750,
-        '秋田県': 1750,
-        '岩手県': 1750,
-        '宮城県': 1750,
-        '山形県': 1750,
-        '福島県': 1750,
-        '群馬県': 1200,
-        '栃木県': 1200,
-        '山梨県': 1200,
-        '茨城県': 1200,
-        '千葉県': 1200,
-        '埼玉県': 1200,
-        '神奈川県': 1200,
-        '東京都': 1200,
-        '新潟県': 1200,
-        '長野県': 1200,
-        '富山県': 1200,
-        '石川県': 1200,
-        '福井県': 1200,
-        '静岡県': 1200,
-        '愛知県': 1200,
-        '三重県': 1200,
-        '岐阜県': 1200,
-        '愛媛県': 1200,
-        '香川県': 1200,
-        '高知県': 1200,
-        '徳島県': 1200,
-        '大阪府': 1000,
-        '京都府': 1000,
-        '奈良県': 1000,
-        '滋賀県': 1000,
-        '兵庫県': 1000,
-        '和歌山県': 1000,
-        '島根県': 900,
-        '鳥取県': 900,
-        '山口県': 900,
-        '広島県': 900,
-        '岡山県': 900,
-        '福岡県': 900,
-        '佐賀県': 900,
-        '長崎県': 900,
-        '熊本県': 900,
-        '大分県': 900,
-        '宮崎県': 900,
-        '鹿児島県': 900,
+        '北海道': 2400, '青森県': 1750, '秋田県': 1750, '岩手県': 1750, '宮城県': 1750, '山形県': 1750, '福島県': 1750,
+        '群馬県': 1200, '栃木県': 1200, '山梨県': 1200, '茨城県': 1200, '千葉県': 1200, '埼玉県': 1200, '神奈川県': 1200, '東京都': 1200,
+        '新潟県': 1200, '長野県': 1200, '富山県': 1200, '石川県': 1200, '福井県': 1200, '静岡県': 1200, '愛知県': 1200,
+        '三重県': 1200, '岐阜県': 1200, '愛媛県': 1200, '香川県': 1200, '高知県': 1200, '徳島県': 1200,
+        '大阪府': 1000, '京都府': 1000, '奈良県': 1000, '滋賀県': 1000, '兵庫県': 1000, '和歌山県': 1000,
+        '島根県': 900, '鳥取県': 900, '山口県': 900, '広島県': 900, '岡山県': 900,
+        '福岡県': 900, '佐賀県': 900, '長崎県': 900, '熊本県': 900, '大分県': 900, '宮崎県': 900, '鹿児島県': 900,
         '沖縄県': 1500
       };
 
@@ -335,27 +389,19 @@
       }
 
       function getShippingFee() {
-        const prefecture = prefectureEl.value;
-        return shippingFees[prefecture] || 0;
+        return shippingFees[prefectureEl.value] || 0;
       }
 
       function calculateTotal() {
         let subtotal = 0;
-
         checks.forEach((check) => {
           const price = Number(check.dataset.price || 0);
           const qtyInput = document.getElementById(check.dataset.qtyId);
           const qty = qtyInput ? Number(qtyInput.value || 0) : 0;
-
-          if (check.checked && qty > 0) {
-            subtotal += price * qty;
-          }
+          if (check.checked && qty > 0) subtotal += price * qty;
         });
-
         const taxIncluded = Math.round(subtotal * TAX_RATE);
-        const shippingFee = getShippingFee();
-        const total = taxIncluded + shippingFee;
-
+        const total = taxIncluded + getShippingFee();
         totalEl.textContent = formatYen(total);
         return total;
       }
@@ -367,59 +413,16 @@
           const qty = qtyInput ? Number(qtyInput.value || 0) : 0;
           if (check.checked && qty > 0) {
             const productName = check.parentElement.textContent.trim();
-            items.push(`${productName} × ${qty}`);
+            const price = Number(check.dataset.price || 0);
+            items.push({ name: productName, qty, price });
           }
         });
         return items;
       }
 
-      checks.forEach((check) => {
-        check.addEventListener('change', function () {
-          const qtyInput = document.getElementById(check.dataset.qtyId);
-          if (!qtyInput) return;
-
-          if (check.checked && Number(qtyInput.value) === 0) {
-            qtyInput.value = 1;
-          }
-          if (!check.checked) {
-            qtyInput.value = 0;
-          }
-          calculateTotal();
-        });
-      });
-
-      qtyInputs.forEach((input) => {
-        input.addEventListener('input', function () {
-          const qty = Math.max(0, Number(input.value || 0));
-          input.value = qty;
-
-          const relatedCheck = Array.from(checks).find((c) => c.dataset.qtyId === input.id);
-          if (relatedCheck) {
-            relatedCheck.checked = qty > 0;
-          }
-          calculateTotal();
-        });
-      });
-
-      prefectureEl.addEventListener('change', function () {
-        calculateTotal();
-      });
-
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
+      function getOrderData() {
         const total = calculateTotal();
-
-        if (total === 0) {
-          resultEl.textContent = '商品を1点以上選択してください。';
-          resultEl.style.color = '#b91c1c';
-          return;
-        }
-
-        if (!form.reportValidity()) {
-          return;
-        }
-
-        const products = getSelectedProducts().join('\\n');
+        const products = getSelectedProducts();
         const lastName = document.getElementById('lastName').value.trim();
         const firstName = document.getElementById('firstName').value.trim();
         const phone = document.getElementById('phone').value.trim();
@@ -429,27 +432,44 @@
         const building = document.getElementById('building').value.trim();
         const shippingFee = getShippingFee();
 
-        const subject = `【注文】みやざき地頭鶏 / ${lastName} ${firstName} 様`;
-        const body = [
+        return {
+          total,
+          products,
+          lastName,
+          firstName,
+          phone,
+          zipcode,
+          prefecture,
+          cityAddress,
+          building,
+          shippingFee
+        };
+      }
+
+      function buildMailText(data) {
+        return [
           'みやざき地頭鶏の注文内容をお送りします。',
           '',
+          '注文内容確認画像を添付します。',
+          '※画像が自動添付されない場合は、ダウンロードされた画像を手動で添付してください。',
+          '',
           '【ご注文商品】',
-          products,
+          data.products.map(item => `${item.name} × ${item.qty}`).join('\n'),
           '',
           '【配送料】',
-          `${formatYen(shippingFee)}円`,
+          `${formatYen(data.shippingFee)}円`,
           '',
           '【合計金額（税込）】',
-          `${formatYen(total)}円`,
+          `${formatYen(data.total)}円`,
           '',
           '【お届け先情報】',
-          `姓：${lastName}`,
-          `名：${firstName}`,
-          `電話番号：${phone}`,
-          `郵便番号：${zipcode}`,
-          `都道府県：${prefecture}`,
-          `市区町村以下：${cityAddress}`,
-          `マンション名・室番号：${building || 'なし'}`,
+          `姓：${data.lastName}`,
+          `名：${data.firstName}`,
+          `電話番号：${data.phone}`,
+          `郵便番号：${data.zipcode}`,
+          `都道府県：${data.prefecture}`,
+          `市区町村以下：${data.cityAddress}`,
+          `マンション名・室番号：${data.building || 'なし'}`,
           '',
           '【お振込先】',
           'りそな銀行',
@@ -459,13 +479,118 @@
           '※振込時、依頼人情報に氏名（カタカナ）と電話番号を記載ください。',
           '※振込手数料はお客様負担となります。',
           '※振り込み確認取れ次第の発送となります。'
-        ].join('\\n');
+        ].join('\n');
+      }
 
-        const mailtoUrl = `mailto:yusuke_yamamoto@colab.jp?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.location.href = mailtoUrl;
+      function renderConfirmPage(data) {
+        const productLines = data.products.map((item) => {
+          const taxIncluded = Math.round(item.price * item.qty * TAX_RATE);
+          return `${item.name} × ${item.qty}\n小計（税込）：${formatYen(taxIncluded)}円`;
+        }).join('\n\n');
 
-        resultEl.textContent = 'メールソフトが起動しない場合は、端末のメール設定をご確認ください。';
-        resultEl.style.color = '#065f46';
+        document.getElementById('confirmProducts').textContent = productLines;
+        document.getElementById('confirmShipping').textContent = `${formatYen(data.shippingFee)}円`;
+        document.getElementById('confirmTotal').textContent = `${formatYen(data.total)}円`;
+        document.getElementById('confirmName').textContent = `${data.lastName} ${data.firstName} 様`;
+        document.getElementById('confirmPhone').textContent = data.phone;
+        document.getElementById('confirmZipcode').textContent = data.zipcode;
+        document.getElementById('confirmAddress').textContent = `${data.prefecture}${data.cityAddress}${data.building ? '\n' + data.building : ''}`;
+      }
+
+      async function downloadOrderImage(data) {
+        const element = document.getElementById('pdfContent');
+        const fileName = `みやざき地頭鶏_注文確認_${data.lastName}${data.firstName}.jpg`;
+
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          useCORS: true
+        });
+
+        const imageData = canvas.toDataURL('image/jpeg', 0.95);
+        const link = document.createElement('a');
+        link.href = imageData;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      async function openMail(service) {
+        const data = getOrderData();
+        const subject = `【注文】みやざき地頭鶏 / ${data.lastName} ${data.firstName} 様`;
+        const body = buildMailText(data);
+
+        confirmResult.textContent = '注文内容の画像を作成しています。画像が保存されたら、開いたメール画面に添付してください。';
+        confirmResult.style.color = '#065f46';
+
+        await downloadOrderImage(data);
+
+        if (service === 'gmail') {
+          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(MAIL_TO)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          window.open(gmailUrl, '_blank');
+        }
+
+        if (service === 'outlook') {
+          const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(MAIL_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          window.open(outlookUrl, '_blank');
+        }
+
+        confirmResult.textContent = 'メール画面を開きました。ダウンロードされた画像を添付して送信してください。';
+      }
+
+      checks.forEach((check) => {
+        check.addEventListener('change', function () {
+          const qtyInput = document.getElementById(check.dataset.qtyId);
+          if (!qtyInput) return;
+          if (check.checked && Number(qtyInput.value) === 0) qtyInput.value = 1;
+          if (!check.checked) qtyInput.value = 0;
+          calculateTotal();
+        });
+      });
+
+      qtyInputs.forEach((input) => {
+        input.addEventListener('input', function () {
+          const qty = Math.max(0, Number(input.value || 0));
+          input.value = qty;
+          const relatedCheck = Array.from(checks).find((c) => c.dataset.qtyId === input.id);
+          if (relatedCheck) relatedCheck.checked = qty > 0;
+          calculateTotal();
+        });
+      });
+
+      prefectureEl.addEventListener('change', calculateTotal);
+
+      orderForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const data = getOrderData();
+
+        if (data.products.length === 0) {
+          inputResult.textContent = '商品を1点以上選択してください。';
+          inputResult.style.color = '#b91c1c';
+          return;
+        }
+
+        if (!orderForm.reportValidity()) return;
+
+        renderConfirmPage(data);
+        inputPage.classList.add('hidden');
+        confirmPage.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      backButton.addEventListener('click', function () {
+        confirmPage.classList.add('hidden');
+        inputPage.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      gmailButton.addEventListener('click', function () {
+        openMail('gmail');
+      });
+
+      outlookButton.addEventListener('click', function () {
+        openMail('outlook');
       });
 
       calculateTotal();
