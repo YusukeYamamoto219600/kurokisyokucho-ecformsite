@@ -451,7 +451,8 @@
           'みやざき地頭鶏の注文内容をお送りします。',
           '',
           '注文内容確認画像を添付します。',
-          '※画像が自動添付されない場合は、ダウンロードされた画像を手動で添付してください。',
+          '※ここに確認画面を画像保存したファイルを添付してください。',
+          '※画像ファイル名：みやざき地頭鶏_注文確認_お名前.jpg',
           '',
           '【ご注文商品】',
           data.products.map(item => `${item.name} × ${item.qty}`).join('\n'),
@@ -527,16 +528,30 @@
         await downloadOrderImage(data);
 
         if (service === 'gmail') {
-          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(MAIL_TO)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          window.open(gmailUrl, '_blank');
+          // Gmailアプリ起動用URLです。主にスマートフォンのGmailアプリで動作します。
+          // PC環境ではGmail専用アプリがない場合が多いため、起動できない場合は既定のメールアプリに切り替えます。
+          const gmailAppUrl = `googlegmail://co?to=${encodeURIComponent(MAIL_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          const fallbackMailto = `mailto:${MAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+          window.location.href = gmailAppUrl;
+          setTimeout(function () {
+            window.location.href = fallbackMailto;
+          }, 1200);
         }
 
         if (service === 'outlook') {
-          const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(MAIL_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          window.open(outlookUrl, '_blank');
+          // Outlookアプリ起動用URLです。Outlookアプリが入っている端末で動作します。
+          // 起動できない場合は既定のメールアプリに切り替えます。
+          const outlookAppUrl = `ms-outlook://compose?to=${encodeURIComponent(MAIL_TO)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          const fallbackMailto = `mailto:${MAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+          window.location.href = outlookAppUrl;
+          setTimeout(function () {
+            window.location.href = fallbackMailto;
+          }, 1200);
         }
 
-        confirmResult.textContent = 'メール画面を開きました。ダウンロードされた画像を添付して送信してください。';
+        confirmResult.textContent = 'メールアプリを開きました。本文の案内に従い、ダウンロードされた確認画像を添付して送信してください。';
       }
 
       checks.forEach((check) => {
